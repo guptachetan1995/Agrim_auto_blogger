@@ -3,25 +3,15 @@
 'use server';
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import type {
+  SummarizeUserFeedbackInput,
+  SummarizeUserFeedbackOutput
+} from '@/ai/types';
+import {
+  SummarizeUserFeedbackInputSchema,
+  SummarizeUserFeedbackOutputSchema
+} from '@/ai/types';
 
-const SummarizeUserFeedbackInputSchema = z.object({
-  feedback: z.array(z.string()).describe('An array of user feedback strings.'),
-});
-
-export type SummarizeUserFeedbackInput = z.infer<
-  typeof SummarizeUserFeedbackInputSchema
->;
-
-const SummarizeUserFeedbackOutputSchema = z.object({
-  summary: z
-    .string()
-    .describe('A concise summary of the user feedback, highlighting key areas for improvement.'),
-});
-
-export type SummarizeUserFeedbackOutput = z.infer<
-  typeof SummarizeUserFeedbackOutputSchema
->;
 
 export async function summarizeUserFeedback(
   input: SummarizeUserFeedbackInput

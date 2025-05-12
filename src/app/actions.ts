@@ -1,6 +1,8 @@
+// This file uses server-side code.
 'use server';
 
-import { generateBlogPost, type GenerateBlogPostInput, type GenerateBlogPostOutput } from '@/ai/flows/generate-blog-post';
+import { generateBlogPost } from '@/ai/flows/generate-blog-post';
+import type { GenerateBlogPostInput, GenerateBlogPostOutput } from '@/ai/types';
 
 export async function handleGenerateBlog(data: GenerateBlogPostInput): Promise<GenerateBlogPostOutput> {
   try {

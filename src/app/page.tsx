@@ -1,6 +1,6 @@
 'use client';
 
-import type { GenerateBlogPostOutput } from '@/ai/flows/generate-blog-post';
+import type { GenerateBlogPostOutput } from '@/ai/types';
 import { useState } from 'react';
 import { BlogForm, type BlogFormValues } from '@/components/blog-form';
 import { BlogDisplay }  from '@/components/blog-display';

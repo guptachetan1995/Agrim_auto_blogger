@@ -1,42 +1,94 @@
 // This file uses server-side code.
 'use server';
 
-export interface TavilySearchResult {
+// Ensure .env variables are loaded. This might be handled by Next.js/Genkit already.
+// import { config } from 'dotenv';
+// config();
+
+// Import the type from the central types file
+import type { TavilySearchResult } from '@/ai/types';
+
+
+interface TavilyAPIResponseResult {
   title: string;
   url: string;
-  content?: string; // Snippet or short content
+  content: string; // Tavily API typically provides this
+  score?: number;
+  raw_content?: string; // if requested
 }
 
-export async function tavilySearch(query: string): Promise<TavilySearchResult[]> {
-  console.log(`Simulating Tavily search for: ${query}`);
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
+interface TavilyAPIResponse {
+  query?: string;
+  response_time?: number;
+  answer?: string | null;
+  images?: string[] | null;
+  results: TavilyAPIResponseResult[];
+  error?: string;
+}
 
-  // Return dummy data matching the expected structure
-  const queryTerms = query.toLowerCase().split(' ').filter(term => term.length > 2);
-  const baseResults: TavilySearchResult[] = [
-    {
-      title: `Comprehensive Guide to ${queryTerms[0] || 'Key Topic'}`,
-      url: `https://example.com/guide-${queryTerms[0] || 'key-topic'}`,
-      content: `An in-depth guide to ${queryTerms[0] || 'the main subject'}. This article covers history, applications, and future outlook.`,
-    },
-    {
-      title: `Exploring ${queryTerms[1] || 'Related Concept'} in Modern Times`,
-      url: `https://example.com/exploring-${queryTerms[1] || 'related-concept'}`,
-      content: `Discover the relevance of ${queryTerms[1] || 'this important concept'} today. Includes case studies and expert opinions.`,
-    },
-    {
-      title: `The Impact of ${queryTerms[2] || 'Another Keyword'} on Global Trends`,
-      url: `https://example.com/impact-${queryTerms[2] || 'another-keyword'}`,
-      content: `A detailed analysis of how ${queryTerms[2] || 'this keyword'} is shaping industries and societies worldwide.`,
-    },
-    {
-      title: `Top 5 Innovations in ${queryTerms[0] || 'Primary Field'} for ${new Date().getFullYear()}`,
-      url: `https://example.com/innovations-${queryTerms[0] || 'primary-field'}`,
-      content: `Stay updated with the latest breakthroughs in ${queryTerms[0] || 'the primary field of interest'}.`,
-    },
-  ];
 
-  // Shuffle results for some variation if needed, or just return as is.
-  return baseResults.sort(() => Math.random() - 0.5).slice(0, 3); // Return 3 random results
+export async function tavilySearch(query: string, maxResults: number = 3): Promise<TavilySearchResult[]> {
+  const apiKey = process.env.TAVILY_API_KEY;
+
+  if (!apiKey) {
+    console.error(
+      'Tavily API key not found. Please set TAVILY_API_KEY in your .env file.' +
+      ' Returning empty search results. The blog post will be generated using general knowledge only.'
+    );
+    return [];
+  }
+
+  console.log(`Performing Tavily search for: "${query}"`);
+
+  try {
+    const response = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        api_key: apiKey,
+        query: query,
+        search_depth: 'advanced', // 'basic' or 'advanced'
+        include_answer: false, // We don't need Tavily's AI answer, just search results
+        include_images: false,
+        include_raw_content: false, // For snippets, 'content' is usually enough. Set to true if full raw text is needed.
+        max_results: maxResults,
+        // include_domains: [],
+        // exclude_domains: []
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`Tavily API error: ${response.status} ${response.statusText}`, errorBody);
+      // Fallback to empty results on API error to avoid breaking the flow
+      return [];
+    }
+
+    const data = (await response.json()) as TavilyAPIResponse;
+
+    if (data.error) {
+      console.error('Tavily API returned an error in the response body:', data.error);
+      return [];
+    }
+    
+    if (!data.results || data.results.length === 0) {
+      console.log(`Tavily search for "${query}" returned no results.`);
+      return [];
+    }
+
+    // Map Tavily API results to our TavilySearchResult structure
+    return data.results.map((result: TavilyAPIResponseResult) => ({
+      title: result.title,
+      url: result.url,
+      content: result.content, // This is the snippet Tavily provides
+      score: result.score,
+    }));
+
+  } catch (error) {
+    console.error('Failed to fetch from Tavily API:', error);
+    // Fallback to empty results on network or parsing error
+    return [];
+  }
 }

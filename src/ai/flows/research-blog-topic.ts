@@ -4,38 +4,23 @@
 /**
  * @fileOverview Conducts real-time web research based on input parameters (keywords, blog description).
  * The flow first uses an LLM to generate relevant search queries, then executes these queries
- * using a search service (Tavily) to find relevant source URLs.
+ * using a search service (Tavily) to find relevant source URLs and content snippets.
  *
  * - researchBlogTopic - A function that initiates the blog topic research flow.
- * - ResearchBlogTopicInput - The input type for the researchBlogTopic function.
- * - ResearchBlogTopicOutput - The return type for the researchBlogTopic function, including search queries and found source URLs.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import {tavilySearch, type TavilySearchResult} from '@/services/tavily';
+import type {
+  ResearchBlogTopicInput,
+  ResearchBlogTopicOutput
+} from '@/ai/types';
+import {
+  ResearchBlogTopicInputSchema,
+  ResearchBlogTopicOutputSchema,
+  ResearchBlogTopicPromptOutputSchema
+} from '@/ai/types';
 
-const ResearchBlogTopicInputSchema = z.object({
-  blogDescription: z.string().describe('A description of the blog topic.'),
-  primaryKeywords: z.string().describe('Primary keywords related to the blog topic.'),
-  secondaryKeywords: z.string().optional().describe('Secondary keywords for the blog topic.'),
-  targetAudience: z.string().describe('The target audience for the blog post.'),
-});
-
-export type ResearchBlogTopicInput = z.infer<typeof ResearchBlogTopicInputSchema>;
-
-// This is the final output schema for the entire flow
-const ResearchBlogTopicOutputSchema = z.object({
-  searchQueries: z.array(z.string()).describe('List of search queries used for research.'),
-  relevantSources: z.array(z.string()).describe('List of URLs for relevant sources found during research.'),
-});
-
-export type ResearchBlogTopicOutput = z.infer<typeof ResearchBlogTopicOutputSchema>;
-
-// Internal schema for the output of the researchBlogTopicPrompt (LLM part only)
-const ResearchBlogTopicPromptOutputSchema = z.object({
-  searchQueries: z.array(z.string()).describe('A list of effective search queries to find relevant information.'),
-});
 
 export async function researchBlogTopic(input: ResearchBlogTopicInput): Promise<ResearchBlogTopicOutput> {
   return researchBlogTopicFlow(input);
@@ -83,31 +68,40 @@ const researchBlogTopicFlow = ai.defineFlow(
     const searchQueries = llmResponse.output?.searchQueries || [];
 
     if (!searchQueries.length) {
-      // Fallback if LLM fails to provide queries, or provide a default query
-      console.warn('LLM did not return search queries. Using a default query.');
+      console.warn('LLM did not return search queries. Using a default query based on primary keywords and description.');
       searchQueries.push(`${input.primaryKeywords} ${input.blogDescription}`);
     }
 
-    // 2. Execute these search queries using Tavily (mocked)
-    const searchPromises = searchQueries.map(query => tavilySearch(query));
+    // 2. Execute these search queries using Tavily
+    console.log('Generated search queries:', searchQueries);
+    const searchPromises = searchQueries.map(query => tavilySearch(query, 3)); // Fetch top 3 results per query
     const settledResults = await Promise.allSettled(searchPromises);
 
     const allFoundSources: TavilySearchResult[] = [];
     settledResults.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
+      if (result.status === 'fulfilled' && result.value) {
         allFoundSources.push(...result.value);
-      } else {
+      } else if (result.status === 'rejected') {
         console.error(`Tavily search failed for query "${searchQueries[index]}":`, result.reason);
-        // Optionally, handle this error, e.g., by trying a different service or logging
       }
     });
 
-    // 3. Collect unique URLs from the Tavily search results
-    const relevantSourceUrls = Array.from(new Set(allFoundSources.map(source => source.url).filter(url => !!url)));
+    // 3. Collect unique sources from the Tavily search results
+    // (based on URL to avoid duplicates if multiple queries return the same source)
+    const uniqueSources: TavilySearchResult[] = [];
+    const seenUrls = new Set<string>();
+    for (const source of allFoundSources) {
+      if (source.url && !seenUrls.has(source.url)) {
+        uniqueSources.push(source);
+        seenUrls.add(source.url);
+      }
+    }
+    
+    console.log(`Found ${uniqueSources.length} unique relevant sources.`);
 
     return {
       searchQueries: searchQueries,
-      relevantSources: relevantSourceUrls,
+      relevantSources: uniqueSources,
     };
   }
 );
