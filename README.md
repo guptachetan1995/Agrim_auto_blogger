@@ -136,43 +136,33 @@ The user journey is designed to be simple and intuitive:
 5.  **Display**: The generated blog post (title and HTML content) is displayed on the page.
 6.  **Feedback**: The user can provide feedback on the quality of the generated blog post using emoji ratings.
 
-Below is a visual representation of the user journey:
-
-![User Journey Placeholder](https://picsum.photos/800/400?random=1)
-*<p align="center" data-ai-hint="user journey diagram">Placeholder for User Journey Diagram. Replace with an actual diagram.</p>*
-
 ## ⚙️ How BlogSmith AI Works: The Generation Pipeline
 
 BlogSmith AI employs a sophisticated multi-step process, orchestrated by Genkit, to generate high-quality blog posts. This pipeline ensures that the content is not only AI-generated but also deeply researched and authentically hyperlinked.
 
-![Workflow Diagram Placeholder](https://picsum.photos/800/600?random=2)
-*<p align="center" data-ai-hint="workflow diagram">Placeholder for Workflow Diagram. Replace with an actual diagram.</p>*
-
 **Mermaid Diagram of the Workflow:**
 ```mermaid
 graph TD
-    A[User Input: Topic, Keywords, Audience via UI] --> B(Next.js Frontend);
-    B -- Server Action: handleGenerateBlog --> C{Genkit Orchestrator};
+    A[User Input: Topic, Keywords, Audience via UI] --> B(Next.js Frontend)
+    B -- Server Action: handleGenerateBlog --> C{Genkit Orchestrator}
 
-    C -- 1. Initiate Research --> D[Research Flow: researchBlogTopic];
-    D -- 1a. Prompt LLM (researchBlogTopicPrompt) --> E[LLM: Generate Search Queries];
-    E -- 1b. Search Queries (e.g., ["latest AI trends", "AI impact on healthcare"]) --> D;
-    D -- 1c. Execute Queries --> F[Service: tavilySearch];
-    F -- 1d. Tavily API Call with each query --> G[(Tavily AI API)];
-    G -- 1e. Search Results (URLs, Titles, Snippets) --> F;
-    F -- 1f. Processed & Unique Search Results (TavilySearchResult[]) --> D;
-    D -- 1g. Research Output (original queries, list of TavilySearchResult objects) --> C;
+    C -- 1. Initiate Research --> D[Research Flow: researchBlogTopic]
+    D -- 1a. Prompt LLM (researchBlogTopicPrompt) --> E[LLM: Generate Search Queries]
+    E -- 1b. Return Search Queries (e.g., 'latest AI trends') --> D
+    D -- 1c. Execute Queries --> F[Service: tavilySearch]
+    F -- 1d. Tavily API Call with each query --> G[(Tavily AI API)]
+    G -- 1e. Return Search Results (URLs, Titles, Snippets) --> F
+    F -- 1f. Processed & Unique Search Results --> D
+    D -- 1g. Research Output to Orchestrator --> C
 
-    C -- 2. Initiate Content Generation --> H[Content Generation Flow: generateBlogPost];
-    H -- 2a. Combine User Input + Research Results (TavilySearchResult[]) --> I[LLM: Generate Blog Post (generateBlogPostPrompt)];
-    I -- Prompt includes detailed instructions for: <br/> - Human-like tone, fluency, authority <br/> - SEO optimization (keyword usage, structure) <br/> - Content structure (headings, paragraphs) <br/> - **Crucially: Synthesize info from 'Research Material' <br/> & embed 2-3 hyperlinks to source URLs** <br/> - HTML formatting (p, h2, h3, a) <br/> - Target audience adaptation <br/> - Originality (summarize, synthesize, cite by linking) --> I;
-    I -- 2b. Generated Blog (Title, HTML Content with embedded links) --> H;
-    H -- 2c. Final Blog Output (GenerateBlogPostOutput) --> C;
+    C -- 2. Initiate Content Generation --> H[Content Generation Flow: generateBlogPost]
+    H -- 2a. Combine Input + Research Results --> I[LLM: Generate Blog Post]
+    I -- 2b. Generate blog with SEO, HTML, links --> H
+    H -- 2c. Final Blog Output --> C
 
-    C -- 3. Return Blog Post --> B;
-    B -- Displays to User --> J[User Views Generated Blog with Text & Active Hyperlinks];
-    J -- User Feedback --> K{Feedback Handling (Optional: summarizeUserFeedback flow)};
-
+    C -- 3. Return Blog Post --> B
+    B -- Displays to User --> J[User Views Generated Blog with Links]
+    J -- User Feedback --> K{Feedback Handling}
 
     style A fill:#f9f,stroke:#333,stroke-width:2px
     style J fill:#ccf,stroke:#333,stroke-width:2px
@@ -182,6 +172,7 @@ graph TD
     style E fill:#lightgrey,stroke:#333,stroke-width:1px
     style I fill:#lightgrey,stroke:#333,stroke-width:1px
     style K fill:#e6ffe6,stroke:#333,stroke-width:1px
+
 ```
 
 **Step-by-Step Explanation:**
