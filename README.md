@@ -146,21 +146,21 @@ graph TD
     A[User Input: Topic, Keywords, Audience via UI] --> B(Next.js Frontend)
     B -- Server Action: handleGenerateBlog --> C{Genkit Orchestrator}
 
-    C -- 1. Initiate Research --> D[Research Flow: researchBlogTopic]
-    D -- 1a. Prompt LLM (researchBlogTopicPrompt) --> E[LLM: Generate Search Queries]
-    E -- 1b. Return Search Queries (e.g., 'latest AI trends') --> D
-    D -- 1c. Execute Queries --> F[Service: tavilySearch]
-    F -- 1d. Tavily API Call with each query --> G[(Tavily AI API)]
-    G -- 1e. Return Search Results (URLs, Titles, Snippets) --> F
-    F -- 1f. Processed & Unique Search Results --> D
+    C -- 1a. Initiate Research --> D[Research Flow: researchBlogTopic]
+    D -- 1b. Prompt LLM (researchBlogTopicPrompt) --> E[LLM: Generate Search Queries]
+    E -- 1c. Return Search Queries (e.g., 'latest AI trends') --> D
+    D -- 1d. Execute Queries --> F[Service: tavilySearch]
+    F -- 1e. Tavily API Call with each query --> G[(Tavily AI API)]
+    G -- 1f. Return Search Results (URLs, Titles, Snippets) --> F
+    F -- 1h. Processed & Unique Search Results --> D
     D -- 1g. Research Output to Orchestrator --> C
 
-    C -- 2. Initiate Content Generation --> H[Content Generation Flow: generateBlogPost]
-    H -- 2a. Combine Input + Research Results --> I[LLM: Generate Blog Post]
-    I -- 2b. Generate blog with SEO, HTML, links --> H
-    H -- 2c. Final Blog Output --> C
+    C -- 2a. Initiate Content Generation --> H[Content Generation Flow: generateBlogPost]
+    H -- 2b. Combine Input + Research Results --> I[LLM: Generate Blog Post]
+    I -- 2c. Generate blog with SEO, HTML, links --> H
+    H -- 2d. Final Blog Output --> C
 
-    C -- 3. Return Blog Post --> B
+    C -- 3a. Return Blog Post --> B
     B -- Displays to User --> J[User Views Generated Blog with Links]
     J -- User Feedback --> K{Feedback Handling}
 
