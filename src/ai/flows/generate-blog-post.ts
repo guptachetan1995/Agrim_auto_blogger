@@ -27,7 +27,7 @@ const generateBlogPostPrompt = ai.definePrompt({
   input: {schema: GenerateBlogPostPromptInputSchema},
   output: {schema: GenerateBlogPostOutputSchema},
   prompt: `You are an expert blog writer and SEO specialist. Your goal is to generate a comprehensive, well-researched, engaging, and up-to-date blog post.
-The blog post must be written in a human-like, fluent style. It should incorporate information from the provided "Research Material" to ensure accuracy and recency.
+The blog post must be written in a human-like, fluent, and conversational style. It should incorporate information from the provided "Research Material" to ensure accuracy and recency.
 
 Blog Description: {{{blogDescription}}}
 Primary Keywords: {{{primaryKeywords}}}
@@ -49,21 +49,21 @@ No specific research material provided. Rely on your general knowledge, but clea
 Instructions:
 1.  **Content Generation**:
     *   Thoroughly analyze the Blog Description, Keywords, and Target Audience.
-    *   **Critically use the "Research Material"**: Synthesize information from these sources, especially the content snippets. Prioritize information from these sources over general knowledge, especially for facts, figures, or recent developments.
+    *   **Critically use the "Research Material"**: The provided 'Research Material' is crucial for ensuring the blog post is current and well-supported. Weave information from these sources naturally into your writing. Synthesize information from these sources, especially the content snippets. Prioritize information from these sources over general knowledge, especially for facts, figures, or recent developments.
     *   If the Research Material is sparse or doesn't cover all aspects, you may use your general knowledge but clearly indicate where the information is from your general training data versus specific, up-to-date sources.
     *   The blog post should be at least 300 words, ideally 500-800 words for better engagement.
-    *   Maintain a conversational yet authoritative tone suitable for the {{{targetAudience}}}.
-    *   Ensure logical flow, clear structure with headings (h2, h3) and paragraphs (p).
+    *   Maintain a conversational yet authoritative tone suitable for the {{{targetAudience}}}. Strive for a narrative or engaging style that captivates the {{{targetAudience}}}.
+    *   Ensure logical flow and clear structure. Organize the content with a clear introduction, several body paragraphs each focusing on a key aspect, and a concise conclusion. Use headings (h2, h3) to break up the text and improve readability.
     *   Avoid jargon unless explained or appropriate for the target audience.
 
 2.  **Hyperlinking**:
     *   **Integrate multiple (at least 2-3 if distinct and relevant sources are available) relevant hyperlinks** to the provided source URLs from the "Research Material".
     *   Hyperlinks should be naturally embedded within the text (e.g., "According to <a href='URL_HERE'>this article on {Source Title}</a>..."). Do not just list links or create a "Sources" section.
-    *   Use the source title or a relevant phrase from its content as the anchor text for the hyperlink.
-    *   Ensure links are to the actual URLs provided in the Research Material.
+    *   Use the source title or a relevant phrase from its content as the anchor text for the hyperlink. When hyperlinking, use the 'Source Snippet' (if available for a source: {{{this.content}}}) to understand the context of the source and craft relevant anchor text that flows naturally with your writing.
+    *   Ensure links are to the actual URLs provided in the Research Material. Do not invent URLs or link to generic search pages.
 
 3.  **Formatting**:
-    *   Output valid HTML. Use \`<p>\` tags for paragraphs. Use \`<h2>\` or \`<h3>\` for section titles.
+    *   Output valid HTML. Use \`<p>\` tags for paragraphs. Use \`<h2>\` or \`<h3>\` for section titles. Use \`<ul>\` or \`<ol>\` for lists where appropriate.
     *   Do NOT include \`<html>\`, \`<body>\`, \`<head>\`, or \`<title>\` tags.
     *   Do NOT include any images or image tags (\`<img>\`).
     *   Use bold (\`<strong>\`) or italics (\`<em>\`) sparingly for emphasis.
@@ -72,7 +72,7 @@ Instructions:
     *   Focus on creating high-quality, human-like content that is informative and engaging.
     *   Ensure the blog post is fluent, well-written, and free of grammatical errors.
     *   The content must be original and not a direct copy from the sources. Summarize, synthesize, and cite by linking.
-    *   Start directly with the blog content. Do not add any preambles like "Here is your blog post:".
+    *   Start directly with the blog content (e.g., an \`<h2>\` for the title, followed by an introductory \`<p>\`). Do not add any preambles like "Here is your blog post:".
     *   Conclude with a summary or a call to action if appropriate for the topic.
 `,
 });
